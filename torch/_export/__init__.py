@@ -172,21 +172,7 @@ def export(
     constraints: Optional[List[Constraint]] = None,
 ) -> ExportedProgram:
     """
-    Traces either an nn.Module's forward function or just a callable with PyTorch
-    operations inside and produce a ExportedProgram.
-
-    Args:
-        m: the `nn.Module` or callable to trace.
-
-        args: example positional inputs.
-
-        kwargs: optional example keyword inputs.
-
-        constraints: A optional list of constraints on the dynamic arguments specifying
-            their possible range of their shapes
-
-    Returns:
-        An ExportedProgram containing the traced method.
+    See docstring of torch.export().
     """
     constraints = constraints or []
     kwargs = kwargs or {}

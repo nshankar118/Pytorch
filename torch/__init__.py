@@ -33,7 +33,7 @@ if _running_with_deploy():
 else:
     from .torch_version import __version__ as __version__
 
-from typing import Any, Callable, Dict, Optional, Set, Tuple, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, Optional, Set, Tuple, Type, TYPE_CHECKING, Union, List
 import builtins
 
 __all__ = [
@@ -55,6 +55,7 @@ __all__ = [
     'set_warn_always', 'is_warn_always_enabled', 'SymInt', 'SymFloat',
     'SymBool', 'sym_not',
     'sym_int', 'sym_float', 'sym_max', 'sym_min', 'compile', 'vmap',
+    'export',
 ]
 
 ################################################################################
@@ -1752,6 +1753,108 @@ if not _running_with_deploy():
             return cls.ops_table[(op_key, dispatch_key)]
 
 
+################################################################################
+# Exposing torch.export() and related support classes
+################################################################################
+
+# TODO(ycao): Move ExportedProgram, Constraint, dynamic_dim etc to torch.compiler namespace
+
+def export(
+    f: Callable,
+    args: Tuple[Any],
+    kwargs: Optional[Dict[str, Any]] = None,
+    *,
+    constraints: Optional[List["torch._dynamo.eval_frame.Constraint"]] = None,
+) -> "torch._export.exported_program.ExportedProgram":
+    """
+    torch.export() is a one-shot process for capturing a computation graph from
+    a PyTorch program Ahead-of-Time (AOT).
+
+    This function traces either an nn.Module's forward function or a callable
+    containing PyTorch operations and produces an ExportedProgram. The
+    ExportedProgram includes PyTorch operations that perform computations
+    equivalent to those in the given nn.Module or callable.
+
+    In specific terms, torch.export() traces a function `f` by executing it
+    with the provided `args` and `kwargs`. It records the PyTorch operations
+    invoked during execution to produce the ExportedProgram.
+
+    Acceptable types of inputs (for `args` and `kwargs`) and outputs include:
+        - Primitive types, i.e. torch.Tensor, int, float, bool.
+        - (Nested) Data structures comprising of dict, list,
+            tuple, namedtuple and OrderedDict
+        - Dataclass subclass (must be registered with 
+            torch._export.utils.register_dataclass_as_pytree_node` first)
+
+    torch.export() specializes the traced program based on the values of 
+    inputs that are not torch.Tensors. If you want to preserve dynamic
+    branching behavior in the generated graph, you will need to manually
+    rewrite the source code using control flow operations like
+    `torch.ops.higher_order.cond`.
+
+    While tracing, torch.export() takes note of shape-related assumptions 
+    made by the user program and the underlying PyTorch operator kernels.
+    The output ExportedProgram is considered valid only when these
+    assumptions hold true. These assumptions are validated during tracing
+    according to shapes (not values) of input tensors, values of other type
+    inputs that are specialzied and `constraints` arguments. If any assumption
+    can not be validated, a fatal error will be raised. When that happens,
+    the error message will include suggested code needed to construct necessary
+    constraints to meet the assumptions, e.g.
+        ```
+        def specify_constraints(x):
+            return [
+                # x:
+                dynamic_dim(x, 0),
+                dynamic_dim(x, 0) <= 5,
+            ]
+        ```
+    This example means the program requires the dim 0 of input `x` to be less
+    than or equal to 5 to be valid. You can inspect the constraints needed and
+    then copy this exact function into your code to generated needed 
+    constraints to be passed into `constraints` argument.
+
+    The returned ExportedProgram maintains the following invariants:
+        - It is guaranteed to be a faithful representation of the original
+            program.
+        - It maintains the exact calling convention of the original program.
+        - It contains a `state_dict` that stores the `torch.nn.Parameters`
+            involved in computation of the original program.
+        - It includes an fx.GraphModule that represents the computation of
+            the original program. The GraphModule:
+            - Contains only `placeholder`, `call_function`, and `return` nodes.
+            - Inlines all submodules from the original programs.
+            - Lifts all parameters and buffers of the original program as
+                inputs to the graph.
+            - Does not mutate intermediate values, parameters, or buffers.
+            - Does not include operations with side effects.
+            - Contains only a curated subset of ATen operations and registered
+                custom operations (by default).
+                See the list of Core ATen Ops here: https://pytorch.org/docs/stable/ir.html
+
+    Args:
+        f: The `nn.Module` or callable to trace. If an `nn.Module` is provided,
+             its `forward` method will be traced.
+        args: Example positional inputs.
+        kwargs: Optional example keyword inputs.
+        constraints: An optional list of constraints on the dynamic arguments
+            that specify their possible range of shapes. By default, shapes of
+            input torch.Tensors are assumed to be static. If an input torch.Tensor
+            is expected to have dynamic shapes, please use `torch._export.dynamic_dim()`
+            to define `Constraint` objects that specify the dynamics and the possible
+            range of shapes. See torch._export.dynamic_dim() docstring for examples on
+            how to use it.
+
+    Returns:
+        An ExportedProgram containing the traced callable.
+
+    For more information on how to analyze, transform, execute, and further lower an ExportedProgram,
+    please refer to the docstring of `torch._export.exported_program.ExportedProgram`.
+    """
+
+    return torch._export.export(f, args, kwargs, constraints)
+
+
 # Deprecated attributes
 _deprecated_attrs = {
     "has_mps": torch.backends.mps.is_built,
@@ -1771,6 +1874,7 @@ if TYPE_CHECKING:
 _lazy_modules = {
     "_dynamo",
     "_inductor",
+    "_export",
     # ONNX must be imported after _dynamo, _ops, _subclasses, fx, func and jit
     "onnx",
 }
