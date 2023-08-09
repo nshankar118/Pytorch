@@ -1840,9 +1840,9 @@ def export(
         constraints: An optional list of constraints on the dynamic arguments
             that specify their possible range of shapes. By default, shapes of
             input torch.Tensors are assumed to be static. If an input torch.Tensor
-            is expected to have dynamic shapes, please use `torch._export.dynamic_dim()`
+            is expected to have dynamic shapes, please use `torch.compiler.dynamic_dim()`
             to define `Constraint` objects that specify the dynamics and the possible
-            range of shapes. See torch._export.dynamic_dim() docstring for examples on
+            range of shapes. See torch.compiler.dynamic_dim() docstring for examples on
             how to use it.
 
     Returns:
