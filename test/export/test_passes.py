@@ -9,10 +9,11 @@ from typing import List, Set
 import operator
 
 import torch
+from torch.compiler import dynamic_dim
 from torch.testing._internal.common_utils import run_tests, TestCase
 from torch.testing import FileCheck
 from torch._dynamo.eval_frame import is_dynamo_supported
-from torch._export import export, dynamic_dim
+from torch._export import export
 from torch._export.constraints import constrain_as_value, constrain_as_size
 from torch._export.passes import (
     ReplaceViewOpsWithViewCopyOpsPass,

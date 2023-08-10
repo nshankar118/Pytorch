@@ -4,8 +4,8 @@ import unittest
 
 import torch
 import torch._dynamo as torchdynamo
-from torch._export import export, dynamic_dim, DEFAULT_EXPORT_DYNAMO_CONFIG
-from torch._export.utils import register_dataclass_as_pytree_node
+from torch._export import export, DEFAULT_EXPORT_DYNAMO_CONFIG
+from torch.compiler import dynamic_dim, register_dataclass_as_pytree_node
 from torch._export.constraints import constrain_as_size, constrain_as_value
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch.testing._internal.common_utils import run_tests, TestCase

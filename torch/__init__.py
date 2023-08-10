@@ -1784,7 +1784,7 @@ def export(
         - (Nested) Data structures comprising of dict, list,
             tuple, namedtuple and OrderedDict
         - Dataclass subclass (must be registered with 
-            torch._export.utils.register_dataclass_as_pytree_node` first)
+            torch.compiler.register_dataclass_as_pytree_node` first)
 
     torch.export() specializes the traced program based on the values of 
     inputs that are not torch.Tensors. If you want to preserve dynamic
