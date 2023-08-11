@@ -201,7 +201,7 @@ inductor_expected_failures_single_sample["cpu"] = {
     "__getitem__": {b8, f16, f32, f64, i32, i64},
     ("_segment_reduce", "lengths"): {f16, f32, f64},
     "_upsample_bilinear2d_aa": {f32, f64},
-    "bernoulli": {f32, f64},
+    "bernoulli": {f16, f32, f64},
     "cauchy": {f16},
     "chalf": {f16, f32, f64},
     "cholesky": {f32, f64},
