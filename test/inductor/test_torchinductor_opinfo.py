@@ -214,7 +214,7 @@ inductor_expected_failures_single_sample["cpu"] = {
     "masked_scatter": {f16, f32, f64},
     ("max", "reduction_with_dim"): {b8},
     ("min", "reduction_with_dim"): {b8},
-    "multinomial": {f32, f64},
+    "multinomial": {f16, f32, f64},
     "nn.functional.avg_pool1d": {i64},
     "nn.functional.avg_pool2d": {i64},
     "nn.functional.local_response_norm": {i64},
