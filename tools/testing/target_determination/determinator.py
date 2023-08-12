@@ -4,7 +4,7 @@ from tools.stats.upload_metrics import emit_metric
 
 from tools.testing.target_determination.heuristics import (
     HEURISTICS,
-    TestPrioritizations,
+    TestPrioritizations as TestPrioritizations,
 )
 
 
@@ -43,7 +43,7 @@ def get_test_prioritizations(tests: List[str]) -> TestPrioritizations:
         + len(rankings.probably_relevant)
         + len(rankings.unranked_relevance)
     )
-    assert num_tests_analyzed != len(
+    assert num_tests_analyzed == len(
         tests
     ), f"Was given {len(tests)} tests to prioritize, but only analyzed {num_tests_analyzed} tests"
 
