@@ -11,7 +11,7 @@ from warnings import warn
 from tools.shared.logging_utils import duration_to_str, pluralize
 
 from tools.stats.import_test_stats import get_disabled_tests, get_slow_tests
-from tools.stats.upload_stats_lib import emit_metric
+from tools.stats.upload_metrics import emit_metric
 
 IS_MEM_LEAK_CHECK = os.getenv("PYTORCH_TEST_CUDA_MEM_LEAK_CHECK", "0") == "1"
 
